@@ -1,20 +1,25 @@
 package com.example.filmhub.data.repository;
 
-import android.app.Application; // <-- Import Application untuk inisialisasi database
-
-import androidx.annotation.NonNull; // <-- Import untuk anotasi @NonNull
+import android.app.Application;
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.filmhub.BuildConfig;
+import com.example.filmhub.database.entities.FavoriteMovie;
 import com.example.filmhub.data.model.GenreResponse;
 import com.example.filmhub.data.model.MovieDetailResponse;
 import com.example.filmhub.data.model.MovieResponse;
+import com.example.filmhub.database.entities.WatchedMovie;
 import com.example.filmhub.database.dao.FavoriteMovieDao;
 import com.example.filmhub.database.dao.WatchedMovieDao;
 import com.example.filmhub.database.db.AppDatabase;
 import com.example.filmhub.networking.api.ApiService;
 import com.example.filmhub.networking.clients.RetrofitClient;
+
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -28,8 +33,9 @@ import retrofit2.Response;
 public class MovieRepository {
 
     private final ApiService apiService;
-    private final FavoriteMovieDao favoriteMovieDao; // <-- Tambahkan field untuk DAO
-    private final WatchedMovieDao watchedMovieDao; // <-- Tambahkan field untuk DAO
+    private final FavoriteMovieDao favoriteMovieDao;
+    private final WatchedMovieDao watchedMovieDao;
+    private final ExecutorService databaseExecutor; // <-- REVISI: Tambahkan Executor
     private static MovieRepository instance;
 
     // Constructor diubah untuk menerima Application context agar bisa inisialisasi database
@@ -41,6 +47,9 @@ public class MovieRepository {
         AppDatabase database = AppDatabase.getInstance(application);
         this.favoriteMovieDao = database.favoriteMovieDao();
         this.watchedMovieDao = database.watchedMovieDao();
+
+        // REVISI: Inisialisasi Executor untuk menjalankan operasi database di background
+        this.databaseExecutor = Executors.newSingleThreadExecutor();
     }
 
     // Singleton pattern diubah untuk menerima Application context
@@ -51,10 +60,10 @@ public class MovieRepository {
         return instance;
     }
 
-    /**
-     * Mengambil daftar film dari API berdasarkan sortir, genre, dan halaman.
-     * Digunakan untuk Halaman Utama.
-     */
+    // ===================================================================================
+    // BAGIAN API (TIDAK ADA PERUBAHAN)
+    // ===================================================================================
+
     public LiveData<MovieResponse> getDiscoverMovies(String sortBy, String genreIds, int page) {
         MutableLiveData<MovieResponse> data = new MutableLiveData<>();
         apiService.getDiscoverMovies(BuildConfig.API_KEY, sortBy, genreIds, page)
@@ -64,24 +73,17 @@ public class MovieRepository {
                         if (response.isSuccessful()) {
                             data.setValue(response.body());
                         } else {
-                            // Bisa di-handle jika respons tidak sukses tapi bukan failure (misal: error 404)
                             data.setValue(null);
                         }
                     }
-
                     @Override
                     public void onFailure(@NonNull Call<MovieResponse> call, @NonNull Throwable t) {
-                        // Handle jika terjadi kegagalan jaringan
                         data.setValue(null);
                     }
                 });
         return data;
     }
 
-    /**
-     * Mengambil daftar film dari API berdasarkan query pencarian.
-     * Digunakan untuk fitur pencarian.
-     */
     public LiveData<MovieResponse> searchMovies(String query, int page) {
         MutableLiveData<MovieResponse> data = new MutableLiveData<>();
         apiService.searchMovies(BuildConfig.API_KEY, query, page)
@@ -94,7 +96,6 @@ public class MovieRepository {
                             data.setValue(null);
                         }
                     }
-
                     @Override
                     public void onFailure(@NonNull Call<MovieResponse> call, @NonNull Throwable t) {
                         data.setValue(null);
@@ -103,10 +104,6 @@ public class MovieRepository {
         return data;
     }
 
-    /**
-     * Mengambil daftar semua genre yang tersedia dari API.
-     * Digunakan untuk fitur filter genre.
-     */
     public LiveData<GenreResponse> getGenres() {
         MutableLiveData<GenreResponse> data = new MutableLiveData<>();
         apiService.getGenres(BuildConfig.API_KEY)
@@ -119,7 +116,6 @@ public class MovieRepository {
                             data.setValue(null);
                         }
                     }
-
                     @Override
                     public void onFailure(@NonNull Call<GenreResponse> call, @NonNull Throwable t) {
                         data.setValue(null);
@@ -128,10 +124,6 @@ public class MovieRepository {
         return data;
     }
 
-    /**
-     * Mengambil detail lengkap satu film dari API berdasarkan ID film.
-     * Digunakan untuk Halaman Detail.
-     */
     public LiveData<MovieDetailResponse> getMovieDetails(int movieId) {
         MutableLiveData<MovieDetailResponse> data = new MutableLiveData<>();
         apiService.getMovieDetails(movieId, BuildConfig.API_KEY)
@@ -144,7 +136,6 @@ public class MovieRepository {
                             data.setValue(null);
                         }
                     }
-
                     @Override
                     public void onFailure(@NonNull Call<MovieDetailResponse> call, @NonNull Throwable t) {
                         data.setValue(null);
@@ -153,13 +144,45 @@ public class MovieRepository {
         return data;
     }
 
-    // Nanti di fase berikutnya, kita akan menambahkan metode untuk berinteraksi dengan DAO
-    // Contoh:
-    // public LiveData<List<FavoriteMovie>> getAllFavoriteMovies() {
-    //     return favoriteMovieDao.getAllFavoriteMovies();
-    // }
-    //
-    // public void insertFavoriteMovie(FavoriteMovie movie) {
-    //     // Jalankan di background thread
-    // }
+    // ===================================================================================
+    // REVISI: BAGIAN INTERAKSI DENGAN DATABASE FAVORIT
+    // ===================================================================================
+
+    public LiveData<List<FavoriteMovie>> getAllFavoriteMovies() {
+        return favoriteMovieDao.getAllFavoriteMovies();
+    }
+
+    public LiveData<FavoriteMovie> getFavoriteStatus(int movieId) {
+        return favoriteMovieDao.getFavoriteMovieById(movieId);
+    }
+
+    public void insertFavorite(FavoriteMovie favoriteMovie) {
+        databaseExecutor.execute(() -> {
+            favoriteMovieDao.insert(favoriteMovie);
+        });
+    }
+
+    public void deleteFavorite(FavoriteMovie favoriteMovie) {
+        databaseExecutor.execute(() -> {
+            favoriteMovieDao.delete(favoriteMovie);
+        });
+    }
+
+    // ===================================================================================
+    // REVISI: BAGIAN INTERAKSI DENGAN DATABASE "SUDAH DITONTON"
+    // ===================================================================================
+
+    public LiveData<List<WatchedMovie>> getAllWatchedMovies() {
+        return watchedMovieDao.getAllWatchedMovies();
+    }
+
+    public LiveData<WatchedMovie> getWatchedStatus(int movieId) {
+        return watchedMovieDao.getWatchedMovieById(movieId);
+    }
+
+    public void saveWatchedMovie(WatchedMovie watchedMovie) {
+        databaseExecutor.execute(() -> {
+            watchedMovieDao.insertOrUpdate(watchedMovie);
+        });
+    }
 }

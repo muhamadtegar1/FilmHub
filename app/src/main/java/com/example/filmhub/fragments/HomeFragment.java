@@ -23,10 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
-import com.namaanda.moviejournalapp.adapters.MovieListAdapter;
-import com.example.filmhub.data.model.GenreResponse;
-import com.example.filmhub.data.model.Movie;
-import com.example.filmhub.data.model.MovieResponse;
+import com.example.filmhub.adapters.MovieListAdapter;
 import com.example.filmhub.data.model.Genre;
 import com.example.filmhub.viewmodel.HomeViewModel;
 import com.example.filmhub.R;

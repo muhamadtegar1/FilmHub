@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.navigation.ui)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.livedata)
+    implementation(libs.glide)
 
     // Networking
     implementation(libs.retrofit)
@@ -69,5 +70,9 @@ dependencies {
 
     // Logging Interceptor hanya untuk debug, tidak untuk rilis
     debugImplementation(libs.okhttp.logging.interceptor)
+
+    // Database Room
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler) // Gunakan ksp, atau annotationProcessor jika Anda tidak pakai KSP
 }
 

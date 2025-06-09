@@ -78,3 +78,9 @@ dependencies {
     implementation(libs.androidx.preference)
 }
 
+// Taruh di bagian paling bawah file build.gradle.kts
+
+configurations.all {
+    exclude(group = "com.intellij", module = "annotations")
+}
+

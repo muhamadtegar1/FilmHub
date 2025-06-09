@@ -16,6 +16,10 @@ public class Movie {
 
     // Buat constructor, getter, dan setter untuk semua field di atas
 
+
+    public Movie() {
+    }
+
     public Movie(int id, String title, String posterPath, String overview, double voteAverage) {
         this.id = id;
         this.title = title;

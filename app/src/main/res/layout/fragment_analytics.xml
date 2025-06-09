@@ -1,6 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".fragments.AnalyticsFragment">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Statistik Tontonan"
+                android:gravity="center"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"/>
+
+            <TextView
+                android:id="@+id/tv_total_movies_watched"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                tools:text="Total Film Ditonton: 10"/>
+
+            <TextView
+                android:id="@+id/tv_total_duration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                tools:text="Total Durasi Tonton: 20 jam 30 menit"/>
+
+            <TextView
+                android:id="@+id/tv_average_rating"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                tools:text="Rata-rata Rating Personal: 4.2/5.0"/>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Riwayat Tontonan"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_watched"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"/>
+
+        <TextView
+            android:id="@+id/tv_empty_watched"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Anda belum menandai film apapun sebagai 'Sudah Ditonton'."
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+    </FrameLayout>
+</LinearLayout>

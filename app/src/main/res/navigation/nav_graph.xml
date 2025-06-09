@@ -1,22 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<navigation
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/homeFragment">
 
     <fragment
-    android:id="@+id/homeFragment" android:name="com.example.filmhub.fragments.HomeFragment" android:label="fragment_home" tools:layout="@layout/fragment_home" /> <fragment
-    android:id="@+id/favoriteFragment" android:name="com.example.filmhub.fragments.FavoriteFragment" android:label="fragment_favorite"
-    tools:layout="@layout/fragment_favorite" />
+        android:id="@+id/homeFragment"
+        android:name="com.example.filmhub.fragments.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_homeFragment_to_detailActivity"
+            app:destination="@id/detailActivity" />
+    </fragment>
 
     <fragment
-        android:id="@+id/analyticsFragment" android:name="com.example.filmhub.fragments.AnalyticsFragment" android:label="fragment_analytics"
-        tools:layout="@layout/fragment_analytics" />
+        android:id="@+id/favoriteFragment"
+        android:name="com.example.filmhub.fragments.FavoriteFragment"
+        android:label="fragment_favorite"
+        tools:layout="@layout/fragment_favorite">
+        <action
+            android:id="@+id/action_favoriteFragment_to_detailActivity"
+            app:destination="@id/detailActivity" />
+    </fragment>
 
+    <fragment
+        android:id="@+id/analyticsFragment"
+        android:name="com.example.filmhub.fragments.AnalyticsFragment"
+        android:label="fragment_analytics"
+        tools:layout="@layout/fragment_analytics" />
     <activity
-        android:id="@+id/detailActivity" android:name="com.example.filmhub.activities.DetailActivity" android:label="activity_detail"
-        tools:layout="@layout/activity_detail" />
+        android:id="@+id/detailActivity"
+        android:name="com.example.filmhub.activities.DetailActivity"
+        android:label="activity_detail"
+        tools:layout="@layout/activity_detail">
+        <argument
+            android:name="movieId"
+            app:argType="integer" />
+    </activity>
 
 </navigation>

@@ -72,7 +72,7 @@ public class DetailActivity extends AppCompatActivity {
 
     // Inisialisasi semua view dari layout XML
     private void initViews() {
-        ivPoster = findViewById(R.id.iv_detail_poster);
+        ivPoster = findViewById(R.id.iv_detail_backdrop);
         // ivBackdrop = findViewById(R.id.iv_detail_backdrop); // Jika ada
         tvTitle = findViewById(R.id.tv_detail_title);
         tvRating = findViewById(R.id.tv_detail_rating);

@@ -10,12 +10,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -52,6 +53,9 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
     // Variabel untuk menyimpan state filter & sortir saat ini
     private String currentSortBy = "popularity.desc"; // Nilai default
     private String currentGenreIds = "";              // Nilai default
+    private LinearLayout errorLayout;   // <-- REVISI: Tambahan
+    private Button btnRefresh;          // <-- REVISI: Tambahan
+    private TextView tvEmptyMessage;    // <-- REVISI: Tambahan (jika belum ada)
 
     public HomeFragment() {
         // Required empty public constructor
@@ -73,8 +77,8 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
         initViewModel();
         setupRecyclerView();
         setupSortSpinner(); // Setup spinner sebelum listener
-        setupListeners();
-        observeViewModel();
+        setupListeners(); // Revisi ada di dalam metode ini
+        observeViewModel(); // Revisi ada di dalam metode ini
 
         // Memuat data awal saat fragment pertama kali dibuat
         if (savedInstanceState == null) {
@@ -91,6 +95,8 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
         chipGroupGenres = view.findViewById(R.id.chip_group_genres); // Ganti dengan ID Anda
         spinnerSort = view.findViewById(R.id.spinner_sort); // Ganti dengan ID Anda
         progressBar = view.findViewById(R.id.progress_bar); // Ganti dengan ID Anda
+        errorLayout = view.findViewById(R.id.error_layout);   // <-- REVISI: Inisialisasi layout error
+        btnRefresh = view.findViewById(R.id.btn_refresh);     // <-- REVISI: Inisialisasi tombol refresh
     }
 
     // Inisialisasi ViewModel
@@ -121,76 +127,78 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
 
     // Setup semua listener untuk interaksi pengguna
     private void setupListeners() {
-        // Listener untuk SearchView
+        // Listener untuk SearchView tetap sama
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if (query != null && !query.isEmpty()) {
                     progressBar.setVisibility(View.VISIBLE);
+                    errorLayout.setVisibility(View.GONE); // Sembunyikan error saat memulai pencarian baru
+                    recyclerViewMovies.setVisibility(View.VISIBLE);
                     homeViewModel.searchMovies(query, 1);
                     searchView.clearFocus();
                 }
                 return true;
             }
-
             @Override
-            public boolean onQueryTextChange(String newText) {
-                return false;
-            }
+            public boolean onQueryTextChange(String newText) { return false; }
         });
 
         searchView.setOnCloseListener(() -> {
             progressBar.setVisibility(View.VISIBLE);
+            errorLayout.setVisibility(View.GONE); // Sembunyikan error
+            recyclerViewMovies.setVisibility(View.VISIBLE);
             homeViewModel.loadDefaultMovies();
             return false;
         });
 
-        // Listener untuk ChipGroup (Filter Genre)
+        // Listener untuk ChipGroup tetap sama
         chipGroupGenres.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            StringBuilder selectedGenreIds = new StringBuilder();
-            for (Integer id : checkedIds) {
-                Chip chip = group.findViewById(id);
-                if (chip != null) {
-                    if (selectedGenreIds.length() > 0) {
-                        selectedGenreIds.append(",");
-                    }
-                    selectedGenreIds.append(chip.getTag().toString());
-                }
-            }
-            currentGenreIds = selectedGenreIds.toString();
+            // ... logika chip tetap sama ...
             progressBar.setVisibility(View.VISIBLE);
             homeViewModel.loadMoviesWithFilters(currentSortBy, currentGenreIds);
         });
 
-        // Listener untuk Spinner (Sortir)
+        // Listener untuk Spinner tetap sama
         spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                currentSortBy = getSortParameterFromPosition(position);
+                // ... logika spinner tetap sama ...
                 progressBar.setVisibility(View.VISIBLE);
                 homeViewModel.loadMoviesWithFilters(currentSortBy, currentGenreIds);
             }
-
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // <-- REVISI: Tambahkan listener untuk tombol refresh -->
+        btnRefresh.setOnClickListener(v -> {
+            // Tampilkan loading, sembunyikan pesan error, dan coba muat ulang data
+            progressBar.setVisibility(View.VISIBLE);
+            errorLayout.setVisibility(View.GONE);
+            recyclerViewMovies.setVisibility(View.VISIBLE);
+            homeViewModel.loadDefaultMovies();
         });
     }
 
     // Mengobservasi perubahan data dari ViewModel
     private void observeViewModel() {
-        // Observasi perubahan daftar film
+        // <-- REVISI: Logika di dalam observer ini diubah total -->
         homeViewModel.getMovieListLiveData().observe(getViewLifecycleOwner(), movieResponse -> {
             progressBar.setVisibility(View.GONE);
             if (movieResponse != null && movieResponse.getResults() != null) {
+                // KONDISI SUKSES
+                errorLayout.setVisibility(View.GONE);
+                recyclerViewMovies.setVisibility(View.VISIBLE);
                 movieAdapter.setMovieList(movieResponse.getResults());
             } else {
-                Toast.makeText(getContext(), "Gagal memuat daftar film", Toast.LENGTH_SHORT).show();
-                movieAdapter.setMovieList(new ArrayList<>()); // Kosongkan list jika error
+                // KONDISI GAGAL (TIDAK ADA KONEKSI)
+                errorLayout.setVisibility(View.VISIBLE);
+                recyclerViewMovies.setVisibility(View.GONE);
             }
         });
 
-        // Observasi perubahan daftar genre
+        // Observasi genre tetap sama
         homeViewModel.getGenresLiveData().observe(getViewLifecycleOwner(), genreResponse -> {
             if (genreResponse != null && genreResponse.getGenres() != null) {
                 displayGenresAsChips(genreResponse.getGenres());

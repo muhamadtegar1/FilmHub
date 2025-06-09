@@ -74,5 +74,7 @@ dependencies {
     // Database Room
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler) // Gunakan ksp, atau annotationProcessor jika Anda tidak pakai KSP
+
+    implementation(libs.androidx.preference)
 }
 

@@ -13,10 +13,24 @@ import com.example.filmhub.R;
 import com.example.filmhub.database.entities.WatchedMovie;
 import java.util.ArrayList;
 import java.util.List;
+import android.widget.ImageButton;
+
 
 public class WatchedListAdapter extends RecyclerView.Adapter<WatchedListAdapter.WatchedViewHolder> {
 
     private List<WatchedMovie> watchedMovieList = new ArrayList<>();
+    private OnWatchedItemInteractionListener listener; // <-- REVISI: Tambahkan listener
+
+    // REVISI: Tambahkan interface untuk interaksi
+    public interface OnWatchedItemInteractionListener {
+        void onDeleteClicked(int movieId);
+        // Bisa ditambahkan onEditClicked(int movieId) nanti
+    }
+
+    // REVISI: Constructor sekarang menerima listener
+    public WatchedListAdapter(OnWatchedItemInteractionListener listener) {
+        this.listener = listener;
+    }
 
     @NonNull
     @Override
@@ -45,6 +59,7 @@ public class WatchedListAdapter extends RecyclerView.Adapter<WatchedListAdapter.
         ImageView ivPoster;
         TextView tvTitle, tvReviewSnippet;
         RatingBar rbRating;
+        ImageButton btnDelete; // <-- REVISI: Tambahkan ImageButton
 
         public WatchedViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -52,6 +67,7 @@ public class WatchedListAdapter extends RecyclerView.Adapter<WatchedListAdapter.
             tvTitle = itemView.findViewById(R.id.tv_watched_title);
             tvReviewSnippet = itemView.findViewById(R.id.tv_watched_review_snippet);
             rbRating = itemView.findViewById(R.id.rb_watched_rating);
+            btnDelete = itemView.findViewById(R.id.btn_delete_watched); // <-- REVISI: Inisialisasi
         }
 
         public void bind(WatchedMovie movie) {
@@ -60,13 +76,14 @@ public class WatchedListAdapter extends RecyclerView.Adapter<WatchedListAdapter.
             rbRating.setRating(movie.userRating);
 
             String imageUrl = "https://image.tmdb.org/t/p/w500" + movie.posterPath;
-            Glide.with(itemView.getContext())
-                    .load(imageUrl)
-                    .placeholder(R.drawable.ic_image_placeholder)
-                    .error(R.drawable.ic_broken_image_placeholder)
-                    .into(ivPoster);
+            Glide.with(itemView.getContext()).load(imageUrl).into(ivPoster);
 
-            // Nanti bisa ditambahkan OnClickListener di sini jika diperlukan
+            // REVISI: Tambahkan listener untuk tombol hapus
+            btnDelete.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onDeleteClicked(movie.movieId);
+                }
+            });
         }
     }
 }

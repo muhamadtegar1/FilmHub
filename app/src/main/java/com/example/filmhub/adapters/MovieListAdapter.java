@@ -75,6 +75,13 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
         notifyDataSetChanged(); // Cara sederhana. Untuk performa lebih baik, gunakan DiffUtil.
     }
 
+    // REVISI: Tambahkan metode ini untuk pagination
+    public void addMovies(List<Movie> newMovies) {
+        int startPosition = movieList.size();
+        movieList.addAll(newMovies);
+        notifyItemRangeInserted(startPosition, newMovies.size());
+    }
+
     /**
      * ViewHolder yang merepresentasikan satu item tampilan (satu film) di RecyclerView.
      */

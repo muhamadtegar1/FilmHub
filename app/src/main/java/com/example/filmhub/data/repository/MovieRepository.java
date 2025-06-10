@@ -185,4 +185,10 @@ public class MovieRepository {
             watchedMovieDao.insertOrUpdate(watchedMovie);
         });
     }
+
+    public void deleteWatchedMovie(int movieId) { // <-- TAMBAHKAN METODE INI
+        databaseExecutor.execute(() -> {
+            watchedMovieDao.deleteById(movieId);
+        });
+    }
 }

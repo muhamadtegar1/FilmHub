@@ -15,5 +15,9 @@
         <item name="android:statusBarColor">?attr/colorSurface</item>
     </style>
 
+    <style name="Theme.FilmHub.Dialog" parent="ThemeOverlay.Material3.Dialog">
+        <item name="dialogCornerRadius">16dp</item>
+    </style>
+
     <style name="Theme.FilmHub" parent="Base.Theme.FilmHub" />
 </resources>

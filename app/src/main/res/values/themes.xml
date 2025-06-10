@@ -13,6 +13,11 @@
         <item name="android:textColorSecondary">@color/light_text_secondary</item>
 
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+
+    </style>
+
+    <style name="Theme.FilmHub.Dialog" parent="ThemeOverlay.Material3.Dialog">
+        <item name="dialogCornerRadius">16dp</item>
     </style>
 
     <style name="Theme.FilmHub" parent="Base.Theme.FilmHub" />

@@ -4,7 +4,8 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "watched_movies")public class WatchedMovie {
+@Entity(tableName = "watched_movies")
+public class WatchedMovie {
     @PrimaryKey
     @ColumnInfo(name = "movie_id")
     public int movieId;
@@ -27,9 +28,11 @@ import androidx.room.PrimaryKey;
     @ColumnInfo(name = "runtime")
     public int runtime; // Durasi film dalam menit
 
+    // TAMBAHKAN KOLOM INI
+    @ColumnInfo(name = "genres")
+    public String genres;
+
     // Buat constructor dan getter/setter yang lengkap
-
-
     public WatchedMovie() {
     }
 

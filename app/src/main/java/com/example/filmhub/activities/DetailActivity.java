@@ -184,7 +184,7 @@ public class DetailActivity extends AppCompatActivity {
     // Metode untuk menampilkan dialog input review
     private void showReviewDialog() {
         // Membuat instance baru dari dialog kita
-        ReviewInputDialogFragment dialog = ReviewInputDialogFragment.newInstance(movieId);
+        ReviewInputDialogFragment dialog = ReviewInputDialogFragment.newInstance();
         // Menampilkan dialog
         dialog.show(getSupportFragmentManager(), "ReviewDialog");
     }

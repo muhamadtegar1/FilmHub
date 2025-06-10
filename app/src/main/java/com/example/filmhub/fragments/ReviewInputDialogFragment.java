@@ -20,7 +20,13 @@ import com.example.filmhub.database.entities.WatchedMovie;
 import com.example.filmhub.viewmodel.DetailViewModel;
 
 import java.util.Date;
+import com.example.filmhub.data.model.Genre;
+import java.util.stream.Collectors;
 
+/**
+ * DialogFragment untuk menampilkan pop-up input rating dan review.
+ * Menggunakan Shared ViewModel (DetailViewModel) untuk berkomunikasi dengan DetailActivity.
+ */
 public class ReviewInputDialogFragment extends DialogFragment {
 
     private DetailViewModel detailViewModel;
@@ -28,19 +34,19 @@ public class ReviewInputDialogFragment extends DialogFragment {
     private EditText etReview;
     private Button btnCancel, btnSave;
 
-    // Factory method untuk membuat instance fragment dengan argumen
-    public static ReviewInputDialogFragment newInstance(int movieId) {
-        ReviewInputDialogFragment fragment = new ReviewInputDialogFragment();
-        Bundle args = new Bundle();
-        // Kita tidak perlu mengirim movieId karena ViewModel sudah tahu dari Activity
-        // Namun, ini adalah praktik yang baik jika diperlukan di masa depan
-        fragment.setArguments(args);
-        return fragment;
+    /**
+     * Factory method untuk membuat instance fragment.
+     * Cara yang direkomendasikan untuk membuat fragment baru.
+     */
+    public static ReviewInputDialogFragment newInstance() {
+        return new ReviewInputDialogFragment();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Set style agar dialog tidak fullscreen di beberapa perangkat
+        setStyle(DialogFragment.STYLE_NORMAL, R.style.Theme_FilmHub_Dialog);
         return inflater.inflate(R.layout.dialog_review_input, container, false);
     }
 
@@ -51,13 +57,22 @@ public class ReviewInputDialogFragment extends DialogFragment {
         // Inisialisasi ViewModel. Menggunakan requireActivity() untuk mendapatkan ViewModel yang sama dengan Activity.
         detailViewModel = new ViewModelProvider(requireActivity()).get(DetailViewModel.class);
 
-        // Inisialisasi Views
+        // Inisialisasi Views dari layout dialog_review_input.xml
         ratingBar = view.findViewById(R.id.rating_bar_personal);
         etReview = view.findViewById(R.id.et_review);
         btnCancel = view.findViewById(R.id.btn_cancel_review);
         btnSave = view.findViewById(R.id.btn_save_review);
 
         // Observasi data film yang sudah ditonton untuk mengisi form jika sedang mode edit
+        observeExistingWatchedData();
+        setupListeners();
+    }
+
+    /**
+     * Mengobservasi data yang ada. Jika pengguna sudah pernah mereview film ini,
+     * form akan terisi otomatis dengan data sebelumnya (mode edit).
+     */
+    private void observeExistingWatchedData() {
         detailViewModel.getWatchedStatusLiveData().observe(getViewLifecycleOwner(), watchedMovie -> {
             if (watchedMovie != null) {
                 // Jika data sudah ada (mode edit), isi form
@@ -65,41 +80,58 @@ public class ReviewInputDialogFragment extends DialogFragment {
                 etReview.setText(watchedMovie.userReview);
             }
         });
-
-        setupListeners();
     }
 
+    /**
+     * Menyiapkan listener untuk tombol Simpan dan Batal.
+     */
     private void setupListeners() {
         btnCancel.setOnClickListener(v -> dismiss()); // Menutup dialog
 
-        btnSave.setOnClickListener(v -> {
-            // Ambil data film saat ini dari ViewModel
-            MovieDetailResponse movieDetails = detailViewModel.getMovieDetailsLiveData().getValue();
-            if (movieDetails == null) {
-                Toast.makeText(getContext(), "Detail film belum termuat, coba lagi.", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        btnSave.setOnClickListener(v -> saveReview());
+    }
 
-            // Ambil data dari inputan pengguna
-            float rating = ratingBar.getRating();
-            String review = etReview.getText().toString().trim();
-            long watchDate = new Date().getTime(); // Simpan tanggal saat ini sebagai timestamp
+    /**
+     * Logika utama untuk menyimpan review.
+     */
+    private void saveReview() {
+        // Ambil data detail film saat ini dari ViewModel
+        MovieDetailResponse movieDetails = detailViewModel.getMovieDetailsLiveData().getValue();
+        if (movieDetails == null) {
+            Toast.makeText(getContext(), "Detail film belum termuat, coba lagi.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-            // Buat objek WatchedMovie baru
-            WatchedMovie watchedMovie = new WatchedMovie();
-            watchedMovie.movieId = movieDetails.getId();
-            watchedMovie.title = movieDetails.getTitle();
-            watchedMovie.posterPath = movieDetails.getPosterPath();
-            watchedMovie.watchedDate = watchDate;
-            watchedMovie.userRating = rating;
-            watchedMovie.userReview = review;
-            watchedMovie.runtime = movieDetails.getRuntime();
+        // Ambil data dari inputan pengguna
+        float rating = ratingBar.getRating();
+        String review = etReview.getText().toString().trim();
+        long watchDate = new Date().getTime(); // Simpan tanggal saat ini sebagai timestamp
 
-            // Panggil metode di ViewModel untuk menyimpan data ke database
-            detailViewModel.saveWatchedMovie(watchedMovie);
+        // Menggabungkan list genre menjadi satu String (misal: "Action, Adventure, Sci-Fi")
+        String genresString = "";
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N && movieDetails.getGenres() != null) {
+            genresString = movieDetails.getGenres().stream()
+                    .map(Genre::getName)
+                    .collect(Collectors.joining(", "));
+        }
 
-            // Tutup dialog
-            dismiss();
-        });
+        // Buat objek WatchedMovie baru untuk disimpan ke database
+        WatchedMovie watchedMovie = new WatchedMovie();
+        watchedMovie.movieId = movieDetails.getId();
+        watchedMovie.title = movieDetails.getTitle();
+        watchedMovie.posterPath = movieDetails.getPosterPath();
+        watchedMovie.watchedDate = watchDate;
+        watchedMovie.userRating = rating;
+        watchedMovie.userReview = review;
+        watchedMovie.runtime = movieDetails.getRuntime();
+        watchedMovie.genres = genresString; // Menyimpan genre
+
+        // Panggil metode di ViewModel untuk menyimpan data ke database
+        detailViewModel.saveWatchedMovie(watchedMovie);
+
+        Toast.makeText(getContext(), "Catatan tontonan disimpan!", Toast.LENGTH_SHORT).show();
+
+        // Tutup dialog setelah menyimpan
+        dismiss();
     }
 }

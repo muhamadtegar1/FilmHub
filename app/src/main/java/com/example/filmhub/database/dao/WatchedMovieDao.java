@@ -18,4 +18,7 @@ public interface WatchedMovieDao {
 
     @Query("SELECT * FROM watched_movies WHERE movie_id = :movieId")
     LiveData<WatchedMovie> getWatchedMovieById(int movieId);
+
+    @Query("DELETE FROM watched_movies WHERE movie_id = :movieId")
+    void deleteById(int movieId);
 }

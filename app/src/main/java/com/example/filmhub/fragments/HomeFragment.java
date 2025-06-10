@@ -49,6 +49,7 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
     // Deklarasi komponen data & logika
     private HomeViewModel homeViewModel;
     private MovieListAdapter movieAdapter;
+    private GridLayoutManager gridLayoutManager;
 
     // Variabel untuk menyimpan state filter & sortir saat ini
     private String currentSortBy = "popularity.desc"; // Nilai default
@@ -102,7 +103,9 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
     // Setup awal untuk RecyclerView
     private void setupRecyclerView() {
         movieAdapter = new MovieListAdapter(this);
-        recyclerViewMovies.setLayoutManager(new GridLayoutManager(getContext(), 2)); // Tampilan grid 2 kolom
+        // REVISI: Simpan LayoutManager ke variabel
+        gridLayoutManager = new GridLayoutManager(getContext(), 2);
+        recyclerViewMovies.setLayoutManager(gridLayoutManager);
         recyclerViewMovies.setAdapter(movieAdapter);
     }
 
@@ -177,20 +180,37 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
             errorLayout.setVisibility(View.GONE);
             homeViewModel.loadDefaultMovies();
         });
+
+        // REVISI: Tambahkan Scroll Listener untuk Pagination
+        recyclerViewMovies.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                int visibleItemCount = gridLayoutManager.getChildCount();
+                int totalItemCount = gridLayoutManager.getItemCount();
+                int firstVisibleItemPosition = gridLayoutManager.findFirstVisibleItemPosition();
+
+                // Cek jika sudah scroll mendekati akhir list
+                if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
+                    homeViewModel.loadMoreMovies(); // Panggil ViewModel untuk muat data halaman berikutnya
+                }
+            }
+        });
     }
 
     // Mengobservasi perubahan data dari ViewModel
     private void observeViewModel() {
-        // <-- REVISI: Logika di dalam observer ini diubah total -->
-        homeViewModel.getMovieListLiveData().observe(getViewLifecycleOwner(), movieResponse -> {
+        // REVISI: Observer sekarang mengamati cumulativeMovieList
+        homeViewModel.getCumulativeMovieList().observe(getViewLifecycleOwner(), movies -> {
             progressBar.setVisibility(View.GONE);
-            if (movieResponse != null && movieResponse.getResults() != null) {
-                // KONDISI SUKSES
-                errorLayout.setVisibility(View.GONE);
-                recyclerViewMovies.setVisibility(View.VISIBLE);
-                movieAdapter.setMovieList(movieResponse.getResults());
+            errorLayout.setVisibility(View.GONE);
+            recyclerViewMovies.setVisibility(View.VISIBLE);
+
+            if (movies != null) {
+                movieAdapter.setMovieList(movies); // Update seluruh list
             } else {
-                // KONDISI GAGAL (TIDAK ADA KONEKSI)
+                // Handle error
                 errorLayout.setVisibility(View.VISIBLE);
                 recyclerViewMovies.setVisibility(View.GONE);
             }

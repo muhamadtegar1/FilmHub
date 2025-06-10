@@ -53,28 +53,34 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="4dp"
-            tools:listitem="@layout/item_movie" />
+            android:visibility="visible" />
 
         <ProgressBar
             android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Film tidak ditemukan."
+            android:layout_gravity="center"
             android:visibility="gone"
-            tools:visibility="visible" />
+            tools:visibility="visible"/>
 
         <LinearLayout
-            android:id="@+id/error_layout"
+            android:id="@+id/error_layout_connection"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_gravity="center"
             android:gravity="center"
-            android:visibility="gone"
-            tools:visibility="visible">
+            android:visibility="gone">
 
             <TextView
-                android:id="@+id/tv_error_message"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Gagal memuat data.\nCek koneksi internet Anda."
@@ -87,7 +93,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Coba Lagi" />
-
         </LinearLayout>
 
     </FrameLayout>

@@ -36,21 +36,22 @@ import java.util.List;
 
 public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieItemClickListener {
 
-    // Deklarasi komponen UI
+    // REVISI: Deklarasi variabel disatukan dan disederhanakan
     private RecyclerView recyclerViewMovies;
+    private MovieListAdapter movieAdapter;
+    private HomeViewModel homeViewModel;
+    private GridLayoutManager gridLayoutManager;
+
+    // UI untuk kontrol
     private SearchView searchView;
     private ChipGroup chipGroupGenres;
     private Spinner spinnerSort;
+
+    // UI untuk state (loading, error, empty)
     private ProgressBar progressBar;
-    private LinearLayout errorLayout;
+    private LinearLayout errorLayoutConnection;
     private Button btnRefresh;
-    private TextView tvEmptyMessage; // Untuk pesan jika daftar favorit/analitik kosong
-
-    // Deklarasi komponen data & logika
-    private HomeViewModel homeViewModel;
-    private MovieListAdapter movieAdapter;
-    private GridLayoutManager gridLayoutManager;
-
+    private TextView tvMessage;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_home, container, false);
@@ -59,12 +60,13 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Urutan ini lebih aman
         initViews(view);
         setupRecyclerView();
         setupSortSpinner();
-        initViewModel(); // Pindahkan initViewModel setelah setup UI
-        setupListeners();
-        observeViewModel();
+        initViewModel(); // ViewModel diinisialisasi terakhir sebelum observasi
+        setupListeners(); // Listener disetup sebelum ViewModel diobservasi
+
     }
 
     private void initViews(View view) {
@@ -73,13 +75,17 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
         chipGroupGenres = view.findViewById(R.id.chip_group_genres);
         spinnerSort = view.findViewById(R.id.spinner_sort);
         progressBar = view.findViewById(R.id.progress_bar);
-        errorLayout = view.findViewById(R.id.error_layout);
         btnRefresh = view.findViewById(R.id.btn_refresh);
-        tvEmptyMessage = view.findViewById(R.id.tv_error_message); // Menggunakan ID yang sama untuk pesan error/kosong
+        errorLayoutConnection = view.findViewById(R.id.error_layout_connection); // REVISI
+        btnRefresh = view.findViewById(R.id.btn_refresh);
+        tvMessage = view.findViewById(R.id.tv_message); // REVISI
     }
 
     private void initViewModel() {
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        // Langsung observasi dan muat data awal
+        observeViewModel();
+        homeViewModel.refreshData(); // Memanggil data awal (populer)
     }
 
     private void setupRecyclerView() {
@@ -102,7 +108,7 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if (query != null && !query.isEmpty()) {
-                    showLoading();
+                    showLayout(progressBar);
                     homeViewModel.applySearch(query);
                     searchView.clearFocus();
                 }
@@ -110,9 +116,10 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
             }
             @Override
             public boolean onQueryTextChange(String newText) {
-                if(newText.isEmpty()){
-                    showLoading();
-                    homeViewModel.applySearch(""); // Memanggil dengan query kosong akan me-reset ke daftar populer
+                // Jika teks pencarian kosong, reset ke daftar default
+                if (newText.isEmpty() && !searchView.isIconified()) {
+                    showLayout(progressBar);
+                    homeViewModel.refreshData();
                 }
                 return true;
             }
@@ -132,7 +139,7 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
         });
 
         btnRefresh.setOnClickListener(v -> {
-            showLoading();
+            showLayout(progressBar);
             homeViewModel.refreshData();
         });
 
@@ -144,7 +151,6 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
                 int visibleItemCount = gridLayoutManager.getChildCount();
                 int totalItemCount = gridLayoutManager.getItemCount();
                 int firstVisibleItemPosition = gridLayoutManager.findFirstVisibleItemPosition();
-
                 if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
                     homeViewModel.loadMoreMovies();
                 }
@@ -154,8 +160,7 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
 
     // Metode helper untuk menerapkan filter dan sortir
     private void applyFilters() {
-        showLoading();
-        // Dapatkan state saat ini dari UI dan kirim ke ViewModel
+        showLayout(progressBar);
         String sortBy = getSortParameterFromPosition(spinnerSort.getSelectedItemPosition());
         StringBuilder selectedGenreIds = new StringBuilder();
         for (Integer id : chipGroupGenres.getCheckedChipIds()) {
@@ -171,20 +176,20 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
     }
 
     private void observeViewModel() {
-        // Mengobservasi daftar film
         homeViewModel.getMovieList().observe(getViewLifecycleOwner(), movies -> {
-            hideLoading();
             if (movies != null) {
-                showSuccessLayout();
-                movieAdapter.setMovieList(movies);
-                tvEmptyMessage.setVisibility(movies.isEmpty() ? View.VISIBLE : View.GONE);
-                tvEmptyMessage.setText("Film tidak ditemukan.");
+                if (movies.isEmpty()) {
+                    showLayout(tvMessage);
+                    tvMessage.setText("Film tidak ditemukan.");
+                } else {
+                    showLayout(recyclerViewMovies);
+                    movieAdapter.setMovieList(movies);
+                }
             } else {
-                showErrorLayout();
+                showLayout(errorLayoutConnection);
             }
         });
 
-        // Mengobservasi daftar genre
         homeViewModel.getGenresLiveData().observe(getViewLifecycleOwner(), genreResponse -> {
             if (genreResponse != null && genreResponse.getGenres() != null) {
                 displayGenresAsChips(genreResponse.getGenres());
@@ -194,27 +199,19 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
         });
     }
 
-    // Metode UI helper
-    private void showLoading() {
-        progressBar.setVisibility(View.VISIBLE);
-        errorLayout.setVisibility(View.GONE);
+    private void showLayout(View viewToShow) {
+        progressBar.setVisibility(View.GONE);
         recyclerViewMovies.setVisibility(View.GONE);
+        errorLayoutConnection.setVisibility(View.GONE);
+        tvMessage.setVisibility(View.GONE);
+
+        if (viewToShow != null) {
+            viewToShow.setVisibility(View.VISIBLE);
+        }
     }
 
     private void hideLoading() {
         progressBar.setVisibility(View.GONE);
-    }
-
-    private void showErrorLayout() {
-        progressBar.setVisibility(View.GONE);
-        recyclerViewMovies.setVisibility(View.GONE);
-        errorLayout.setVisibility(View.VISIBLE);
-    }
-
-    private void showSuccessLayout() {
-        progressBar.setVisibility(View.GONE);
-        errorLayout.setVisibility(View.GONE);
-        recyclerViewMovies.setVisibility(View.VISIBLE);
     }
 
     private void displayGenresAsChips(List<Genre> genres) {

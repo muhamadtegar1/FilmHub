@@ -18,12 +18,8 @@ import com.example.filmhub.data.model.Genre;
 import com.example.filmhub.data.model.MovieDetailResponse;
 import com.example.filmhub.viewmodel.DetailViewModel;
 import com.example.filmhub.fragments.ReviewInputDialogFragment; // Akan di-import nanti
-import androidx.appcompat.widget.Toolbar;
-
 import java.util.Locale;
 import java.util.stream.Collectors;
-import com.google.android.material.appbar.CollapsingToolbarLayout;
-
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -35,6 +31,7 @@ public class DetailActivity extends AppCompatActivity {
     private TextView tvTitle, tvRating, tvReleaseDate, tvDuration, tvGenres, tvOverview;
     private Button btnFavorite, btnWatched;
     private ProgressBar progressBar;
+
 
     // Deklarasi komponen logika
     private DetailViewModel detailViewModel;
@@ -87,6 +84,19 @@ public class DetailActivity extends AppCompatActivity {
         btnFavorite = findViewById(R.id.btn_favorite);
         btnWatched = findViewById(R.id.btn_watched);
         progressBar = findViewById(R.id.progress_bar_detail);
+
+    }
+
+    /**
+     * Metode baru untuk menangani klik pada tombol back
+     */
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish(); // Tutup activity
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     /**
@@ -119,10 +129,28 @@ public class DetailActivity extends AppCompatActivity {
         // Observasi status "sudah ditonton" dari database
         detailViewModel.getWatchedStatusLiveData().observe(this, watchedMovie -> {
             if (watchedMovie != null) {
-                btnWatched.setText("Lihat/Edit Catatan Tontonan");
-                // Anda bisa menambahkan logika lain, misalnya mengubah warna tombol
+                // KONDISI SUKSES: Film sudah ditonton
+                btnWatched.setText("Lihat/Edit Catatan");
+
+                // TAMBAHAN: Set ikon "sudah ditonton" (misalnya, ikon centang)
+                btnWatched.setCompoundDrawablesWithIntrinsicBounds(
+                        ContextCompat.getDrawable(this, R.drawable.ic_edit),
+                        null,
+                        null,
+                        null
+                );
+
             } else {
+                // KONDISI GAGAL: Film belum ditonton
                 btnWatched.setText("Tandai Sudah Ditonton");
+
+                // TAMBAHAN: Set ikon "tambah"
+                btnWatched.setCompoundDrawablesWithIntrinsicBounds(
+                        ContextCompat.getDrawable(this, R.drawable.ic_check),
+                        null,
+                        null,
+                        null
+                );
             }
         });
     }
@@ -131,8 +159,8 @@ public class DetailActivity extends AppCompatActivity {
     private void populateUi(MovieDetailResponse movie) {
         tvTitle.setText(movie.getTitle());
         tvOverview.setText(movie.getOverview());
-        tvReleaseDate.setText("Rilis: " + movie.getReleaseDate());
-        tvRating.setText(String.format(Locale.getDefault(), "⭐ %.1f", movie.getVoteAverage()));
+        tvReleaseDate.setText(movie.getReleaseDate());
+        tvRating.setText(String.format(Locale.getDefault(), "%.1f", movie.getVoteAverage()));
         tvDuration.setText(movie.getRuntime() + " menit");
 
         // Menggabungkan nama genre menjadi satu string
@@ -205,18 +233,5 @@ public class DetailActivity extends AppCompatActivity {
         ReviewInputDialogFragment dialog = ReviewInputDialogFragment.newInstance();
         // Menampilkan dialog
         dialog.show(getSupportFragmentManager(), "ReviewDialog");
-    }
-
-    /**
-     * REVISI: Metode baru untuk menangani klik pada item di menu (termasuk tombol back)
-     */
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        // Handle klik pada tombol panah back di toolbar
-        if (item.getItemId() == android.R.id.home) {
-            getOnBackPressedDispatcher().onBackPressed(); // Cara modern untuk kembali
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

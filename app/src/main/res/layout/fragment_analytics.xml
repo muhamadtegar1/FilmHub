@@ -11,214 +11,209 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.62" />
-
-    <ScrollView
-        android:id="@+id/scroll_view_stats"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:paddingBottom="8dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/guideline_middle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <TextView
-                android:id="@+id/tv_title_stats"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:text="Statistik Tontonan"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6" />
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/stats_grid"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_stat_1"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_margin="8dp"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintEnd_toStartOf="@+id/card_stat_2"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total Film Ditonton"
-                            android:textAlignment="center"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
-
-                        <TextView
-                            android:id="@+id/tv_total_movies_watched"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
-                            tools:text="15" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_stat_2"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_margin="8dp"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/card_stat_1"
-                    app:layout_constraintTop_toTopOf="parent">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total Durasi Tonton"
-                            android:textAlignment="center"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
-                        <TextView
-                            android:id="@+id/tv_total_duration"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:gravity="center"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
-                            tools:text="30 jam 15 menit" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_stat_3"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_margin="8dp"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintTop_toBottomOf="@id/card_stat_1"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/card_stat_4">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Rata-rata Rating"
-                            android:textAlignment="center"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
-                        <TextView
-                            android:id="@+id/tv_average_rating"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
-                            tools:text="4.2" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_stat_4"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_margin="8dp"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintTop_toBottomOf="@id/card_stat_2"
-                    app:layout_constraintStart_toEndOf="@+id/card_stat_3"
-                    app:layout_constraintEnd_toEndOf="parent">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Top 3 Genre"
-                            android:textAlignment="center"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
-                        <TextView
-                            android:id="@+id/tv_top_genre_1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            tools:text="1. Action" />
-                        <TextView
-                            android:id="@+id/tv_top_genre_2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            tools:text="2. Sci-Fi" />
-                        <TextView
-                            android:id="@+id/tv_top_genre_3"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            tools:text="3. Adventure" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-        </LinearLayout>
-    </ScrollView>
-
-
-    <TextView
-        android:id="@+id/tv_title_history"
+        app:layout_constraintGuide_percent="0.45" /> <TextView
+        android:id="@+id/tv_title_stats"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:text="Riwayat Tontonan"
+        android:layout_marginTop="16dp"
+        android:text="Statistik Tontonan"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/guideline_middle" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/stats_grid"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_title_history"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/guideline_middle"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/tv_title_stats">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view_watched"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_stat_1"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="8dp"
+            app:layout_constraintDimensionRatio="2:1"
+            app:layout_constraintEnd_toStartOf="@+id/card_stat_2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/card_stat_3">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Total Film Ditonton"
+                    android:textAlignment="center"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+
+                <TextView
+                    android:id="@+id/tv_total_movies_watched"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+                    tools:text="15" />
+            </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_stat_2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        app:layout_constraintDimensionRatio="2:1" app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/card_stat_1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/card_stat_4">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="8dp"/>
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total Durasi Tonton"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+            <TextView
+                android:id="@+id/tv_total_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+                tools:text="30 jam 15 menit" />
+        </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
 
+<com.google.android.material.card.MaterialCardView
+android:id="@+id/card_stat_3"
+android:layout_width="0dp"
+android:layout_height="0dp"
+android:layout_margin="8dp"
+app:layout_constraintDimensionRatio="2:1" app:layout_constraintTop_toBottomOf="@id/card_stat_1"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toStartOf="@+id/card_stat_4"
+app:layout_constraintBottom_toBottomOf="parent">
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rata-rata Rating"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+    <TextView
+        android:id="@+id/tv_average_rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+        tools:text="4.2" />
+</LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+    android:id="@+id/card_stat_4"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_margin="8dp"
+    app:layout_constraintDimensionRatio="2:1" app:layout_constraintTop_toBottomOf="@id/card_stat_2"
+    app:layout_constraintStart_toEndOf="@+id/card_stat_3"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
         <TextView
-            android:id="@+id/tv_empty_watched"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Anda belum menandai film apapun sebagai 'Sudah Ditonton'."
-            android:visibility="gone" />
+            android:text="Top 2 Genre"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+        <TextView
+            android:id="@+id/tv_top_genre_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            tools:text="1. Action" />
+        <TextView
+            android:id="@+id/tv_top_genre_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="2. Sci-Fi" />
+        <TextView
+            android:id="@+id/tv_top_genre_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="3. Adventure" />
+    </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+    android:id="@+id/tv_title_history"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="8dp"
+    android:text="Riwayat Tontonan"
+    android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toBottomOf="@id/guideline_middle" />
+
+    <FrameLayout
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_marginTop="8dp"
+    app:layout_constraintTop_toBottomOf="@id/tv_title_history"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_watched"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp"/>
+
+    <TextView
+        android:id="@+id/tv_empty_watched"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Anda belum memiliki riwayat tontonan"
+        android:visibility="gone" />
     </FrameLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+
+

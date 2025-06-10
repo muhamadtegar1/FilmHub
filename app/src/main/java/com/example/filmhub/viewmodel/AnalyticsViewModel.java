@@ -1,9 +1,11 @@
 package com.example.filmhub.viewmodel;
 
 import android.app.Application;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+
 import com.example.filmhub.database.entities.WatchedMovie;
 import com.example.filmhub.data.repository.MovieRepository;
 
@@ -33,8 +35,14 @@ public class AnalyticsViewModel extends AndroidViewModel {
 
     /**
      * Menghitung total durasi dari daftar film dan memformatnya menjadi "X jam Y menit".
+     *
      * @param movies Daftar film yang sudah ditonton.
      * @return String durasi yang sudah diformat.
+     */
+    /**
+     * REVISI: Menghitung total durasi dan HANYA memformatnya dalam menit.
+     * @param movies Daftar film yang sudah ditonton.
+     * @return String durasi yang sudah diformat (misal: "150 menit").
      */
     public String getTotalDurationFormatted(List<WatchedMovie> movies) {
         if (movies == null || movies.isEmpty()) {
@@ -44,17 +52,13 @@ public class AnalyticsViewModel extends AndroidViewModel {
         for (WatchedMovie movie : movies) {
             totalMinutes += movie.runtime;
         }
-        if (totalMinutes < 60) {
-            return totalMinutes + " menit";
-        } else {
-            int hours = totalMinutes / 60;
-            int minutes = totalMinutes % 60;
-            return String.format(Locale.getDefault(), "%d jam %d menit", hours, minutes);
-        }
+        // Langsung kembalikan dalam format menit
+        return totalMinutes + " menit";
     }
 
     /**
      * Menghitung rata-rata rating personal dari daftar film.
+     *
      * @param movies Daftar film yang sudah ditonton.
      * @return float rata-rata rating.
      */
@@ -75,6 +79,7 @@ public class AnalyticsViewModel extends AndroidViewModel {
 
     /**
      * Menghitung genre yang paling sering muncul dan mengembalikan Top 3.
+     *
      * @param movies Daftar film yang sudah ditonton.
      * @return List of String berisi maksimal 3 nama genre teratas.
      */

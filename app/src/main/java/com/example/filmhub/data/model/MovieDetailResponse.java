@@ -20,6 +20,8 @@ public class MovieDetailResponse {
     private int runtime; // Durasi film dalam menit
     @SerializedName("genres")
     private List<Genre> genres;
+    @SerializedName("backdrop_path")
+    private String backdropPath;
 
     // Buat constructor, getter, dan setter
 
@@ -96,5 +98,9 @@ public class MovieDetailResponse {
 
     public void setGenres(List<Genre> genres) {
         this.genres = genres;
+    }
+
+    public String getBackdropPath() {
+        return backdropPath;
     }
 }

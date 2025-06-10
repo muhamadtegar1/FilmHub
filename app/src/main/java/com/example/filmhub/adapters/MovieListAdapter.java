@@ -105,17 +105,30 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
         public void bind(final Movie movie, final OnMovieItemClickListener listener) {
             tvTitle.setText(movie.getTitle());
 
-            // Membangun URL gambar poster
-            String imageUrl = "https://image.tmdb.org/t/p/w500" + movie.getPosterPath();
+            // ===================================================================================
+            // REVISI: Tambahkan pengecekan null sebelum memuat gambar
+            // ===================================================================================
 
-            // Menggunakan library Glide untuk memuat gambar dari URL ke ImageView
-            Glide.with(itemView.getContext())
-                    .load(imageUrl)
-                    .placeholder(R.drawable.ic_image_placeholder) // Gambar sementara saat loading
-                    .error(R.drawable.ic_broken_image_placeholder)   // Gambar jika terjadi error
-                    .into(ivPoster);
+            // 1. Ambil path posternya dulu
+            String posterPath = movie.getPosterPath();
 
-            // Mengatur OnClickListener pada seluruh item view
+            // 2. Cek apakah path-nya ada dan tidak kosong
+            if (posterPath != null && !posterPath.isEmpty()) {
+                // KONDISI SUKSES: Jika ada, bangun URL dan muat dengan Glide
+                String imageUrl = "https://image.tmdb.org/t/p/w500" + posterPath;
+                Glide.with(itemView.getContext())
+                        .load(imageUrl)
+                        .placeholder(R.drawable.ic_image_placeholder) // Gambar saat loading
+                        .error(R.drawable.ic_broken_image_placeholder)   // Gambar jika URL error
+                        .into(ivPoster);
+            } else {
+                // KONDISI GAGAL: Jika tidak ada path, tampilkan gambar default
+                Glide.with(itemView.getContext())
+                        .load(R.drawable.ic_broken_image_placeholder) // Atau placeholder lain
+                        .into(ivPoster);
+            }
+
+            // Mengatur OnClickListener pada seluruh item view (tidak berubah)
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onMovieClick(movie.getId());
@@ -124,3 +137,4 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
         }
     }
 }
+

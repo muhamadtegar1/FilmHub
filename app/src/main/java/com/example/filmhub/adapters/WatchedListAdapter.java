@@ -75,10 +75,30 @@ public class WatchedListAdapter extends RecyclerView.Adapter<WatchedListAdapter.
             tvReviewSnippet.setText(movie.userReview);
             rbRating.setRating(movie.userRating);
 
-            String imageUrl = "https://image.tmdb.org/t/p/w500" + movie.posterPath;
-            Glide.with(itemView.getContext()).load(imageUrl).into(ivPoster);
+            // ===================================================================================
+            // REVISI: Tambahkan pengecekan null yang sama seperti di MovieListAdapter
+            // ===================================================================================
 
-            // REVISI: Tambahkan listener untuk tombol hapus
+            // 1. Ambil path posternya dulu
+            String posterPath = movie.posterPath;
+
+            // 2. Cek apakah path-nya ada dan tidak kosong
+            if (posterPath != null && !posterPath.isEmpty()) {
+                // KONDISI SUKSES: Jika ada, bangun URL dan muat dengan Glide
+                String imageUrl = "https://image.tmdb.org/t/p/w500" + posterPath;
+                Glide.with(itemView.getContext())
+                        .load(imageUrl)
+                        .placeholder(R.drawable.ic_image_placeholder)
+                        .error(R.drawable.ic_broken_image_placeholder)
+                        .into(ivPoster);
+            } else {
+                // KONDISI GAGAL: Jika tidak ada path, tampilkan gambar default
+                Glide.with(itemView.getContext())
+                        .load(R.drawable.ic_broken_image_placeholder)
+                        .into(ivPoster);
+            }
+
+            // Listener untuk tombol hapus (tidak berubah)
             btnDelete.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onDeleteClicked(movie.movieId);

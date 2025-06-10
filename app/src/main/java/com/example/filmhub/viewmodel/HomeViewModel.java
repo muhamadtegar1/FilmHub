@@ -13,82 +13,61 @@ import com.example.filmhub.data.repository.MovieRepository;
 import com.example.filmhub.data.model.Movie;
 import java.util.ArrayList;
 import java.util.List;
+import androidx.lifecycle.MediatorLiveData;
+
 
 public class HomeViewModel extends AndroidViewModel {
 
     private final MovieRepository movieRepository;
     private final LiveData<GenreResponse> genresLiveData;
 
-    // REVISI: LiveData untuk daftar film sekarang menampung list akumulatif
-    private final MutableLiveData<List<Movie>> cumulativeMovieList = new MutableLiveData<>();
+    // MediatorLiveData adalah LiveData "super" yang bisa mengobservasi LiveData lain.
+    private final MediatorLiveData<List<Movie>> movieList = new MediatorLiveData<>();
 
-    // REVISI: Variabel untuk mengelola state pagination
     private int currentPage = 1;
     private int totalPages = 1;
     private boolean isLoading = false;
+    private String currentQuery = "";
     private String currentSortBy = "popularity.desc";
     private String currentGenreIds = "";
-    private String currentQuery = "";
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
         movieRepository = MovieRepository.getInstance(application);
         genresLiveData = movieRepository.getGenres();
-        // Muat data awal
-        loadMovies();
+        loadMovies(); // Muat data awal
     }
 
-    // --- Getter untuk diobservasi oleh Fragment ---
-    public LiveData<List<Movie>> getCumulativeMovieList() {
-        return cumulativeMovieList;
+    public LiveData<List<Movie>> getMovieList() {
+        return movieList;
     }
 
     public LiveData<GenreResponse> getGenresLiveData() {
         return genresLiveData;
     }
 
-    // --- Metode untuk mengubah parameter & memuat data ---
-
-    private void resetPagination() {
-        currentPage = 1;
-        totalPages = 1;
-        cumulativeMovieList.setValue(new ArrayList<>()); // Kosongkan list
-    }
-
-    public void setSortBy(String sort) {
-        if (!sort.equals(currentSortBy)) {
-            currentSortBy = sort;
-            resetPagination();
-            loadMovies();
-        }
-    }
-
-    public void setGenreIds(String genres) {
-        if (!genres.equals(currentGenreIds)) {
-            currentGenreIds = genres;
-            resetPagination();
-            loadMovies();
-        }
-    }
-
-    public void searchMovies(String query) {
-        currentQuery = query;
-        resetPagination();
-        loadMovies();
-    }
-
-    public void loadDefaultMovies() {
-        currentQuery = "";
-        setSortBy("popularity.desc"); // Ini akan otomatis memanggil reset dan loadMovies
-    }
-
     public void loadMoreMovies() {
-        // Hanya muat lebih banyak jika tidak sedang loading DAN masih ada halaman berikutnya
-        if (isLoading || currentPage >= totalPages) {
-            return;
-        }
+        if (isLoading || currentPage >= totalPages) return;
         currentPage++;
         loadMovies();
+    }
+
+    public void refreshData() {
+        currentPage = 1;
+        totalPages = 1;
+        loadMovies();
+    }
+
+    public void applySearch(String query) {
+        currentQuery = query;
+        refreshData();
+    }
+
+    public void applyFilters(String sortBy, String genreIds) {
+        currentQuery = ""; // Hapus query pencarian saat filter diterapkan
+        currentSortBy = sortBy;
+        currentGenreIds = genreIds;
+        refreshData();
     }
 
     private void loadMovies() {
@@ -100,21 +79,22 @@ public class HomeViewModel extends AndroidViewModel {
             source = movieRepository.getDiscoverMovies(currentSortBy, currentGenreIds, currentPage);
         }
 
-        source.observeForever(new Observer<MovieResponse>() {
-            @Override
-            public void onChanged(MovieResponse movieResponse) {
-                if (movieResponse != null && movieResponse.getResults() != null) {
-                    List<Movie> currentList = cumulativeMovieList.getValue();
-                    if (currentList == null) {
-                        currentList = new ArrayList<>();
-                    }
-                    currentList.addAll(movieResponse.getResults());
-                    cumulativeMovieList.setValue(currentList);
-                    totalPages = movieResponse.getTotalPages();
+        movieList.addSource(source, movieResponse -> {
+            if (movieResponse != null && movieResponse.getResults() != null) {
+                totalPages = movieResponse.getTotalPages();
+                List<Movie> currentList = (currentPage == 1) ? new ArrayList<>() : movieList.getValue();
+                if (currentList == null) {
+                    currentList = new ArrayList<>();
                 }
-                isLoading = false;
-                source.removeObserver(this); // Hapus observer agar tidak menumpuk
+                currentList.addAll(movieResponse.getResults());
+                movieList.setValue(currentList);
+            } else {
+                if (currentPage == 1) {
+                    movieList.setValue(null); // Kirim null untuk menandakan error
+                }
             }
+            isLoading = false;
+            movieList.removeSource(source);
         });
     }
 }

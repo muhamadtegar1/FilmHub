@@ -13,7 +13,6 @@ import android.widget.Toast;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
@@ -21,15 +20,12 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.example.filmhub.adapters.MovieListAdapter;
 import com.example.filmhub.data.model.Genre;
 import com.example.filmhub.viewmodel.HomeViewModel;
 import com.example.filmhub.R;
-
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +33,7 @@ import java.util.List;
  * Fragment utama yang menampilkan daftar film.
  * Mengelola interaksi pengguna seperti pencarian, filter, dan sortir.
  */
+
 public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieItemClickListener {
 
     // Deklarasi komponen UI
@@ -45,178 +42,149 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
     private ChipGroup chipGroupGenres;
     private Spinner spinnerSort;
     private ProgressBar progressBar;
+    private LinearLayout errorLayout;
+    private Button btnRefresh;
+    private TextView tvEmptyMessage; // Untuk pesan jika daftar favorit/analitik kosong
 
     // Deklarasi komponen data & logika
     private HomeViewModel homeViewModel;
     private MovieListAdapter movieAdapter;
     private GridLayoutManager gridLayoutManager;
 
-    // Variabel untuk menyimpan state filter & sortir saat ini
-    private String currentSortBy = "popularity.desc"; // Nilai default
-    private String currentGenreIds = "";              // Nilai default
-    private LinearLayout errorLayout;   // <-- REVISI: Tambahan
-    private Button btnRefresh;          // <-- REVISI: Tambahan
-    private TextView tvEmptyMessage;    // <-- REVISI: Tambahan (jika belum ada)
-
-    public HomeFragment() {
-        // Required empty public constructor
-    }
-
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate layout untuk fragment ini
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         initViews(view);
-        initViewModel();
         setupRecyclerView();
         setupSortSpinner();
+        initViewModel(); // Pindahkan initViewModel setelah setup UI
         setupListeners();
         observeViewModel();
-
-        // Panggilan data awal sekarang dikelola oleh ViewModel constructor,
-        // jadi kita bisa hapus blok 'if (savedInstanceState == null)' dari sini.
     }
 
-    // Inisialisasi semua view dari layout XML
     private void initViews(View view) {
-        recyclerViewMovies = view.findViewById(R.id.recycler_view_movies); // Ganti dengan ID Anda
-        searchView = view.findViewById(R.id.search_view); // Ganti dengan ID Anda
-        chipGroupGenres = view.findViewById(R.id.chip_group_genres); // Ganti dengan ID Anda
-        spinnerSort = view.findViewById(R.id.spinner_sort); // Ganti dengan ID Anda
-        progressBar = view.findViewById(R.id.progress_bar); // Ganti dengan ID Anda
-        errorLayout = view.findViewById(R.id.error_layout);   // <-- REVISI: Inisialisasi layout error
-        btnRefresh = view.findViewById(R.id.btn_refresh);     // <-- REVISI: Inisialisasi tombol refresh
+        recyclerViewMovies = view.findViewById(R.id.recycler_view_movies);
+        searchView = view.findViewById(R.id.search_view);
+        chipGroupGenres = view.findViewById(R.id.chip_group_genres);
+        spinnerSort = view.findViewById(R.id.spinner_sort);
+        progressBar = view.findViewById(R.id.progress_bar);
+        errorLayout = view.findViewById(R.id.error_layout);
+        btnRefresh = view.findViewById(R.id.btn_refresh);
+        tvEmptyMessage = view.findViewById(R.id.tv_error_message); // Menggunakan ID yang sama untuk pesan error/kosong
     }
 
-    // Inisialisasi ViewModel
     private void initViewModel() {
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
     }
 
-    // Setup awal untuk RecyclerView
     private void setupRecyclerView() {
         movieAdapter = new MovieListAdapter(this);
-        // REVISI: Simpan LayoutManager ke variabel
         gridLayoutManager = new GridLayoutManager(getContext(), 2);
         recyclerViewMovies.setLayoutManager(gridLayoutManager);
         recyclerViewMovies.setAdapter(movieAdapter);
     }
 
-    // Mengisi data ke dalam Spinner Sortir
     private void setupSortSpinner() {
-        // Buat array string di res/values/strings.xml untuk opsi sortir
-        // <string-array name="sort_options">
-        //     <item>Paling Populer</item>
-        //     <item>Rating Tertinggi</item>
-        //     <item>Rilis Terbaru</item>
-        // </string-array>
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(),
                 R.array.sort_options, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerSort.setAdapter(adapter);
     }
 
-    // Setup semua listener untuk interaksi pengguna
     private void setupListeners() {
         // Listener untuk SearchView
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if (query != null && !query.isEmpty()) {
-                    progressBar.setVisibility(View.VISIBLE);
-                    homeViewModel.searchMovies(query); // <-- Panggil metode baru
+                    showLoading();
+                    homeViewModel.applySearch(query);
                     searchView.clearFocus();
                 }
                 return true;
             }
             @Override
-            public boolean onQueryTextChange(String newText) { return false; }
-        });
-
-        searchView.setOnCloseListener(() -> {
-            progressBar.setVisibility(View.VISIBLE);
-            homeViewModel.loadDefaultMovies();
-            return false;
-        });
-
-        // REVISI: Listener untuk ChipGroup
-        chipGroupGenres.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            StringBuilder selectedGenreIds = new StringBuilder();
-            for (Integer id : checkedIds) {
-                Chip chip = group.findViewById(id);
-                if (chip != null) {
-                    if (selectedGenreIds.length() > 0) {
-                        selectedGenreIds.append(",");
-                    }
-                    selectedGenreIds.append(chip.getTag().toString());
+            public boolean onQueryTextChange(String newText) {
+                if(newText.isEmpty()){
+                    showLoading();
+                    homeViewModel.applySearch(""); // Memanggil dengan query kosong akan me-reset ke daftar populer
                 }
+                return true;
             }
-            progressBar.setVisibility(View.VISIBLE);
-            homeViewModel.setGenreIds(selectedGenreIds.toString()); // <-- Panggil metode baru
         });
 
-        // REVISI: Listener untuk Spinner
+        // Listener untuk ChipGroup dan Spinner sekarang digabung ke satu metode
+        ChipGroup.OnCheckedStateChangeListener chipListener = (group, checkedIds) -> applyFilters();
+        chipGroupGenres.setOnCheckedStateChangeListener(chipListener);
+
         spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String sortByValue = getSortParameterFromPosition(position);
-                progressBar.setVisibility(View.VISIBLE);
-                homeViewModel.setSortBy(sortByValue); // <-- Panggil metode baru
+                applyFilters();
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Listener untuk tombol refresh tetap sama
         btnRefresh.setOnClickListener(v -> {
-            progressBar.setVisibility(View.VISIBLE);
-            errorLayout.setVisibility(View.GONE);
-            homeViewModel.loadDefaultMovies();
+            showLoading();
+            homeViewModel.refreshData();
         });
 
-        // REVISI: Tambahkan Scroll Listener untuk Pagination
+        // Listener untuk Pagination
         recyclerViewMovies.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-
                 int visibleItemCount = gridLayoutManager.getChildCount();
                 int totalItemCount = gridLayoutManager.getItemCount();
                 int firstVisibleItemPosition = gridLayoutManager.findFirstVisibleItemPosition();
 
-                // Cek jika sudah scroll mendekati akhir list
                 if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
-                    homeViewModel.loadMoreMovies(); // Panggil ViewModel untuk muat data halaman berikutnya
+                    homeViewModel.loadMoreMovies();
                 }
             }
         });
     }
 
-    // Mengobservasi perubahan data dari ViewModel
-    private void observeViewModel() {
-        // REVISI: Observer sekarang mengamati cumulativeMovieList
-        homeViewModel.getCumulativeMovieList().observe(getViewLifecycleOwner(), movies -> {
-            progressBar.setVisibility(View.GONE);
-            errorLayout.setVisibility(View.GONE);
-            recyclerViewMovies.setVisibility(View.VISIBLE);
+    // Metode helper untuk menerapkan filter dan sortir
+    private void applyFilters() {
+        showLoading();
+        // Dapatkan state saat ini dari UI dan kirim ke ViewModel
+        String sortBy = getSortParameterFromPosition(spinnerSort.getSelectedItemPosition());
+        StringBuilder selectedGenreIds = new StringBuilder();
+        for (Integer id : chipGroupGenres.getCheckedChipIds()) {
+            Chip chip = chipGroupGenres.findViewById(id);
+            if (chip != null) {
+                if (selectedGenreIds.length() > 0) {
+                    selectedGenreIds.append(",");
+                }
+                selectedGenreIds.append(chip.getTag().toString());
+            }
+        }
+        homeViewModel.applyFilters(sortBy, selectedGenreIds.toString());
+    }
 
+    private void observeViewModel() {
+        // Mengobservasi daftar film
+        homeViewModel.getMovieList().observe(getViewLifecycleOwner(), movies -> {
+            hideLoading();
             if (movies != null) {
-                movieAdapter.setMovieList(movies); // Update seluruh list
+                showSuccessLayout();
+                movieAdapter.setMovieList(movies);
+                tvEmptyMessage.setVisibility(movies.isEmpty() ? View.VISIBLE : View.GONE);
+                tvEmptyMessage.setText("Film tidak ditemukan.");
             } else {
-                // Handle error
-                errorLayout.setVisibility(View.VISIBLE);
-                recyclerViewMovies.setVisibility(View.GONE);
+                showErrorLayout();
             }
         });
 
-        // Observasi genre tetap sama
+        // Mengobservasi daftar genre
         homeViewModel.getGenresLiveData().observe(getViewLifecycleOwner(), genreResponse -> {
             if (genreResponse != null && genreResponse.getGenres() != null) {
                 displayGenresAsChips(genreResponse.getGenres());
@@ -226,7 +194,29 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
         });
     }
 
-    // Metode untuk menampilkan genre sebagai Chip secara dinamis
+    // Metode UI helper
+    private void showLoading() {
+        progressBar.setVisibility(View.VISIBLE);
+        errorLayout.setVisibility(View.GONE);
+        recyclerViewMovies.setVisibility(View.GONE);
+    }
+
+    private void hideLoading() {
+        progressBar.setVisibility(View.GONE);
+    }
+
+    private void showErrorLayout() {
+        progressBar.setVisibility(View.GONE);
+        recyclerViewMovies.setVisibility(View.GONE);
+        errorLayout.setVisibility(View.VISIBLE);
+    }
+
+    private void showSuccessLayout() {
+        progressBar.setVisibility(View.GONE);
+        errorLayout.setVisibility(View.GONE);
+        recyclerViewMovies.setVisibility(View.VISIBLE);
+    }
+
     private void displayGenresAsChips(List<Genre> genres) {
         chipGroupGenres.removeAllViews();
         for (Genre genre : genres) {
@@ -234,13 +224,11 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
             chip.setText(genre.getName());
             chip.setCheckable(true);
             chip.setTag(genre.getId());
-            // Beri ID unik agar bisa digunakan di onCheckedStateChangeListener
             chip.setId(View.generateViewId());
             chipGroupGenres.addView(chip);
         }
     }
 
-    // Metode helper untuk mengubah posisi spinner menjadi parameter API
     private String getSortParameterFromPosition(int position) {
         switch (position) {
             case 1:
@@ -253,7 +241,6 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
         }
     }
 
-    // Callback saat item film di RecyclerView diklik
     @Override
     public void onMovieClick(int movieId) {
         Bundle bundle = new Bundle();
@@ -265,3 +252,7 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
         }
     }
 }
+
+
+
+

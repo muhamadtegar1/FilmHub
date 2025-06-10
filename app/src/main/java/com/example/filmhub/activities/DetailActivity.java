@@ -7,19 +7,23 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.view.MenuItem;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat; // Untuk mengambil drawable
 import androidx.lifecycle.ViewModelProvider;
-
+import androidx.annotation.NonNull;
 import com.bumptech.glide.Glide;
 import com.example.filmhub.R;
 import com.example.filmhub.data.model.Genre;
 import com.example.filmhub.data.model.MovieDetailResponse;
 import com.example.filmhub.viewmodel.DetailViewModel;
 import com.example.filmhub.fragments.ReviewInputDialogFragment; // Akan di-import nanti
+import androidx.appcompat.widget.Toolbar;
 
+import java.util.Locale;
 import java.util.stream.Collectors;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
+
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -27,7 +31,7 @@ public class DetailActivity extends AppCompatActivity {
     public static final String EXTRA_MOVIE_ID = "movieId";
 
     // Deklarasi Komponen UI
-    private ImageView ivPoster, ivBackdrop;
+    private ImageView ivPoster;
     private TextView tvTitle, tvRating, tvReleaseDate, tvDuration, tvGenres, tvOverview;
     private Button btnFavorite, btnWatched;
     private ProgressBar progressBar;
@@ -72,8 +76,8 @@ public class DetailActivity extends AppCompatActivity {
 
     // Inisialisasi semua view dari layout XML
     private void initViews() {
-        ivPoster = findViewById(R.id.iv_detail_backdrop);
         // ivBackdrop = findViewById(R.id.iv_detail_backdrop); // Jika ada
+        ivPoster = findViewById(R.id.iv_detail_poster);
         tvTitle = findViewById(R.id.tv_detail_title);
         tvRating = findViewById(R.id.tv_detail_rating);
         tvReleaseDate = findViewById(R.id.tv_detail_release_date);
@@ -84,6 +88,10 @@ public class DetailActivity extends AppCompatActivity {
         btnWatched = findViewById(R.id.btn_watched);
         progressBar = findViewById(R.id.progress_bar_detail);
     }
+
+    /**
+     * REVISI: Metode baru untuk setup Toolbar
+     */
 
     // Inisialisasi ViewModel
     private void initViewModel() {
@@ -124,23 +132,33 @@ public class DetailActivity extends AppCompatActivity {
         tvTitle.setText(movie.getTitle());
         tvOverview.setText(movie.getOverview());
         tvReleaseDate.setText("Rilis: " + movie.getReleaseDate());
-        tvRating.setText(String.format("⭐ %.1f", movie.getVoteAverage()));
+        tvRating.setText(String.format(Locale.getDefault(), "⭐ %.1f", movie.getVoteAverage()));
         tvDuration.setText(movie.getRuntime() + " menit");
 
         // Menggabungkan nama genre menjadi satu string
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N && movie.getGenres() != null) {
             String genres = movie.getGenres().stream()
                     .map(Genre::getName)
                     .collect(Collectors.joining(", "));
             tvGenres.setText(genres);
-
         }
 
-        // Memuat gambar poster menggunakan Glide
-        String posterUrl = "https://image.tmdb.org/t/p/w500" + movie.getPosterPath();
-        Glide.with(this)
-                .load(posterUrl)
-                .into(ivPoster);
+        // ===================================================================================
+        // REVISI: Tambahkan pengecekan null untuk backdrop dan poster
+        // ===================================================================================
+
+        // Memuat gambar backdrop JIKA ADA
+        String posterPath = movie.getPosterPath();
+        if (posterPath != null && !posterPath.isEmpty()) {
+            String posterUrl = "https://image.tmdb.org/t/p/w500" + posterPath;
+            Glide.with(this)
+                    .load(posterUrl)
+                    .placeholder(R.drawable.ic_image_placeholder)
+                    .into(ivPoster);
+        } else {
+            // Fallback jika tidak ada poster
+            ivPoster.setImageResource(R.drawable.ic_image_placeholder);
+        }
     }
 
     // Mengatur listener untuk tombol-tombol
@@ -187,5 +205,18 @@ public class DetailActivity extends AppCompatActivity {
         ReviewInputDialogFragment dialog = ReviewInputDialogFragment.newInstance();
         // Menampilkan dialog
         dialog.show(getSupportFragmentManager(), "ReviewDialog");
+    }
+
+    /**
+     * REVISI: Metode baru untuk menangani klik pada item di menu (termasuk tombol back)
+     */
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        // Handle klik pada tombol panah back di toolbar
+        if (item.getItemId() == android.R.id.home) {
+            getOnBackPressedDispatcher().onBackPressed(); // Cara modern untuk kembali
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

@@ -146,7 +146,21 @@ public class DetailActivity extends AppCompatActivity {
     // Mengatur listener untuk tombol-tombol
     private void setupListeners() {
         btnFavorite.setOnClickListener(v -> {
+            // Cek status favorit SEBELUM melakukan toggle.
+            // 'isFavorite' adalah variabel boolean yang sudah kita update dari LiveData di metode observeViewModel()
+            boolean wasFavorite = isFavorite;
+
+            // Lakukan toggle seperti biasa
             detailViewModel.toggleFavorite();
+
+            // HANYA kembali jika aksinya adalah MENGHAPUS (sebelumnya sudah favorit)
+            if (wasFavorite) {
+                Toast.makeText(DetailActivity.this, "Dihapus dari Favorit", Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                // Jika aksinya MENAMBAH, cukup tampilkan Toast atau biarkan saja
+                Toast.makeText(DetailActivity.this, "Ditambahkan ke Favorit!", Toast.LENGTH_SHORT).show();
+            }
         });
 
         btnWatched.setOnClickListener(v -> {

@@ -72,20 +72,15 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Panggil semua metode setup
         initViews(view);
         initViewModel();
         setupRecyclerView();
-        setupSortSpinner(); // Setup spinner sebelum listener
-        setupListeners(); // Revisi ada di dalam metode ini
-        observeViewModel(); // Revisi ada di dalam metode ini
+        setupSortSpinner();
+        setupListeners();
+        observeViewModel();
 
-        // Memuat data awal saat fragment pertama kali dibuat
-        if (savedInstanceState == null) {
-            progressBar.setVisibility(View.VISIBLE);
-            homeViewModel.fetchGenres();
-            homeViewModel.loadDefaultMovies();
-        }
+        // Panggilan data awal sekarang dikelola oleh ViewModel constructor,
+        // jadi kita bisa hapus blok 'if (savedInstanceState == null)' dari sini.
     }
 
     // Inisialisasi semua view dari layout XML
@@ -127,15 +122,13 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
 
     // Setup semua listener untuk interaksi pengguna
     private void setupListeners() {
-        // Listener untuk SearchView tetap sama
+        // Listener untuk SearchView
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if (query != null && !query.isEmpty()) {
                     progressBar.setVisibility(View.VISIBLE);
-                    errorLayout.setVisibility(View.GONE); // Sembunyikan error saat memulai pencarian baru
-                    recyclerViewMovies.setVisibility(View.VISIBLE);
-                    homeViewModel.searchMovies(query, 1);
+                    homeViewModel.searchMovies(query); // <-- Panggil metode baru
                     searchView.clearFocus();
                 }
                 return true;
@@ -146,37 +139,42 @@ public class HomeFragment extends Fragment implements MovieListAdapter.OnMovieIt
 
         searchView.setOnCloseListener(() -> {
             progressBar.setVisibility(View.VISIBLE);
-            errorLayout.setVisibility(View.GONE); // Sembunyikan error
-            recyclerViewMovies.setVisibility(View.VISIBLE);
             homeViewModel.loadDefaultMovies();
             return false;
         });
 
-        // Listener untuk ChipGroup tetap sama
+        // REVISI: Listener untuk ChipGroup
         chipGroupGenres.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            // ... logika chip tetap sama ...
+            StringBuilder selectedGenreIds = new StringBuilder();
+            for (Integer id : checkedIds) {
+                Chip chip = group.findViewById(id);
+                if (chip != null) {
+                    if (selectedGenreIds.length() > 0) {
+                        selectedGenreIds.append(",");
+                    }
+                    selectedGenreIds.append(chip.getTag().toString());
+                }
+            }
             progressBar.setVisibility(View.VISIBLE);
-            homeViewModel.loadMoviesWithFilters(currentSortBy, currentGenreIds);
+            homeViewModel.setGenreIds(selectedGenreIds.toString()); // <-- Panggil metode baru
         });
 
-        // Listener untuk Spinner tetap sama
+        // REVISI: Listener untuk Spinner
         spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // ... logika spinner tetap sama ...
+                String sortByValue = getSortParameterFromPosition(position);
                 progressBar.setVisibility(View.VISIBLE);
-                homeViewModel.loadMoviesWithFilters(currentSortBy, currentGenreIds);
+                homeViewModel.setSortBy(sortByValue); // <-- Panggil metode baru
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // <-- REVISI: Tambahkan listener untuk tombol refresh -->
+        // Listener untuk tombol refresh tetap sama
         btnRefresh.setOnClickListener(v -> {
-            // Tampilkan loading, sembunyikan pesan error, dan coba muat ulang data
             progressBar.setVisibility(View.VISIBLE);
             errorLayout.setVisibility(View.GONE);
-            recyclerViewMovies.setVisibility(View.VISIBLE);
             homeViewModel.loadDefaultMovies();
         });
     }

@@ -13,21 +13,26 @@ public class HomeViewModel extends AndroidViewModel {
 
     private final MovieRepository movieRepository;
 
-    // REVISI: Gunakan MutableLiveData dan langsung inisialisasi di sini.
-    // MutableLiveData bisa diubah nilainya, sedangkan LiveData hanya bisa dibaca.
+    // LiveData utama yang akan diobservasi oleh Fragment
     private final MutableLiveData<MovieResponse> movieListLiveData = new MutableLiveData<>();
-    private final MutableLiveData<GenreResponse> genresLiveData = new MutableLiveData<>();
+    private final LiveData<GenreResponse> genresLiveData;
+
+    // MutableLiveData untuk menampung parameter filter dan sortir
+    private final MutableLiveData<String> sortBy = new MutableLiveData<>("popularity.desc");
+    private final MutableLiveData<String> genreIds = new MutableLiveData<>("");
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
         movieRepository = MovieRepository.getInstance(application);
+
+        // Ambil daftar genre sekali saja saat ViewModel dibuat
+        genresLiveData = movieRepository.getGenres();
+
+        // Muat film pertama kali
+        loadMovies();
     }
 
-    // ===================================================================================
-    // METODE UNTUK MENDAPATKAN LIVE DATA (UNTUK DIOBSERVASI OLEH FRAGMENT)
-    // Getter akan tetap mengembalikan LiveData agar Fragment tidak bisa mengubah datanya.
-    // ===================================================================================
-
+    // --- Metode untuk mendapatkan LiveData (tidak berubah) ---
     public LiveData<MovieResponse> getMovieListLiveData() {
         return movieListLiveData;
     }
@@ -36,37 +41,45 @@ public class HomeViewModel extends AndroidViewModel {
         return genresLiveData;
     }
 
-    // ===================================================================================
-    // METODE UNTUK MEMICU PENGAMBILAN DATA DARI REPOSITORY (DIPANGGIL DARI FRAGMENT)
-    // REVISI: Metode ini sekarang meng-update nilai MutableLiveData yang sudah ada.
-    // ===================================================================================
+    // --- Metode untuk MENGUBAH parameter (dipanggil dari Fragment) ---
+    public void setSortBy(String sort) {
+        // Jika nilai sortir berubah, update LiveData-nya
+        if (!sort.equals(this.sortBy.getValue())) {
+            this.sortBy.setValue(sort);
+            loadMovies(); // Muat ulang film dengan parameter baru
+        }
+    }
 
-    public void fetchGenres() {
-        // Repository mengembalikan LiveData, kita observasi di sini
-        // dan meneruskan nilainya ke LiveData milik ViewModel.
-        movieRepository.getGenres().observeForever(genreResponse -> {
-            genresLiveData.setValue(genreResponse);
+    public void setGenreIds(String genres) {
+        // Jika nilai genre berubah, update LiveData-nya
+        if (!genres.equals(this.genreIds.getValue())) {
+            this.genreIds.setValue(genres);
+            loadMovies(); // Muat ulang film dengan parameter baru
+        }
+    }
+
+    public void searchMovies(String query) {
+        // Pencarian adalah kasus khusus, kita langsung panggil repository
+        // dan update LiveData utama kita saat hasilnya kembali
+        movieRepository.searchMovies(query, 1).observeForever(movieResponse -> {
+            movieListLiveData.setValue(movieResponse);
         });
     }
 
     public void loadDefaultMovies() {
-        movieRepository.getDiscoverMovies("popularity.desc", "", 1)
-                .observeForever(movieResponse -> {
-                    movieListLiveData.setValue(movieResponse);
-                });
+        // Reset filter dan sortir ke default, lalu muat ulang
+        this.sortBy.setValue("popularity.desc");
+        this.genreIds.setValue("");
+        loadMovies();
     }
 
-    public void searchMovies(String query, int page) {
-        movieRepository.searchMovies(query, page)
-                .observeForever(movieResponse -> {
-                    movieListLiveData.setValue(movieResponse);
-                });
-    }
-
-    public void loadMoviesWithFilters(String sortBy, String genreIds) {
-        movieRepository.getDiscoverMovies(sortBy, genreIds, 1)
-                .observeForever(movieResponse -> {
-                    movieListLiveData.setValue(movieResponse);
-                });
+    // --- Metode PRIVATE untuk memuat ulang data film ---
+    private void loadMovies() {
+        String currentSort = sortBy.getValue();
+        String currentGenres = genreIds.getValue();
+        // Ambil data dari repository dan "salin" hasilnya ke LiveData utama kita
+        movieRepository.getDiscoverMovies(currentSort, currentGenres, 1).observeForever(movieResponse -> {
+            movieListLiveData.setValue(movieResponse);
+        });
     }
 }

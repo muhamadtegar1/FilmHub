@@ -32,6 +32,12 @@ public class MainActivity extends AppCompatActivity {
         // --- TAMBAHAN: Setup Toolbar ---
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // BARIS BARU: Sembunyikan judul default dari Toolbar
+        // Karena kita menggunakan custom ImageView untuk logo, judul default tidak diperlukan.
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
     }
 
     // --- Bagian dari Kode Revisi (Setup Menu & Tema) ---

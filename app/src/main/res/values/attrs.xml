@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Atribut lama, tetap biarkan jika masih dipakai di tempat lain -->
+    <attr name="light_toolbar" format="color" />
+    <attr name="dark_apk" format="color" />
+    <attr name="light_apk" format="color" />
+    <attr name="dark_toolbar" format="color" />
+
+    <!-- ATRIBUT GENERIK BARU UNTUK STYLING TOOLBAR -->
+    <attr name="toolbarBackground" format="color" />
+    <attr name="toolbarTitleColor" format="color" />
+</resources>

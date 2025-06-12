@@ -6,6 +6,14 @@
         <item name="colorSecondary">@color/dark_secondary</item>
         <item name="colorSecondaryVariant">@color/teal</item><item name="colorOnSecondary">@color/black</item>
 
+        <!-- Tetap biarkan ini jika masih dipakai di tempat lain -->
+        <item name="dark_toolbar">@color/dark_toolbar</item>
+        <item name="light_apk">@color/light_apk</item>
+
+        <!-- DEFINISI ATRIBUT GENERIK UNTUK TOOLBAR (MODE MALAM) -->
+        <item name="toolbarBackground">@color/dark_toolbar</item>
+        <item name="toolbarTitleColor">@color/light_apk</item>
+
         <item name="android:windowBackground">@color/dark_background</item>
         <item name="colorSurface">@color/dark_surface</item>
 

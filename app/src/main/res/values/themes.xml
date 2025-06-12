@@ -6,6 +6,14 @@
         <item name="colorSecondaryVariant">@color/teal</item>
         <item name="colorOnSecondary">@color/black</item>
 
+        <!-- Tetap biarkan ini jika masih dipakai di tempat lain -->
+        <item name="light_toolbar">@color/light_toolbar</item>
+        <item name="dark_apk">@color/dark_apk</item>
+
+        <!-- DEFINISI ATRIBUT GENERIK UNTUK TOOLBAR (MODE TERANG) -->
+        <item name="toolbarBackground">@color/light_toolbar</item>
+        <item name="toolbarTitleColor">@color/dark_apk</item>
+
         <item name="android:windowBackground">@color/light_background</item>
         <item name="colorSurface">@color/light_surface</item>
 

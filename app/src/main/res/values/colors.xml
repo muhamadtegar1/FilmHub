@@ -6,6 +6,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+
     <color name="light_primary">@color/purple_light</color><color name="light_primary_variant">@color/purple_dark</color>
     <color name="light_on_primary">@color/white</color>
     <color name="light_secondary">@color/teal</color>
@@ -13,7 +14,11 @@
     <color name="light_surface">#FFFFFF</color>
     <color name="light_text_primary">#212121</color>
     <color name="light_text_secondary">#757575</color>
+    <color name="light_toolbar">#F1EBF5</color>
+    <color name="light_apk">#FFFFFF</color>
 
+    <color name="dark_toolbar">#211F26</color>
+    <color name="dark_apk">#000000</color>
     <color name="dark_primary">#FFBB86FC</color>
     <color name="dark_primary_variant">@color/purple_light</color>
     <color name="dark_on_primary">@color/black</color>
@@ -22,4 +27,5 @@
     <color name="dark_surface">#1F1B24</color>
     <color name="dark_text_primary">#E1E1E1</color>
     <color name="dark_text_secondary">#B3B3B3</color>
+
 </resources>
